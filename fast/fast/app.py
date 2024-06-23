@@ -6,7 +6,7 @@ from fast.schemas import Message, UserPublic, UserSchema, userDB, userList
 
 app = FastAPI()
 
-database = []
+database = [1,2,3]
 
 
 @app.get('/', status_code=HTTPStatus.OK, response_model=Message)
