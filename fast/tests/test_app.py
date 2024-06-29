@@ -64,4 +64,4 @@ def test_put(client):
 def test_delete(client):
     response = client.delete('/users/1')
 
-    assert response.json() == {'message': "deletado"}
+    assert response.json() == {'message': 'deletado'}

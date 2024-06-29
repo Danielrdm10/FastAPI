@@ -30,12 +30,9 @@ def read_users():
 
 @app.put('/users/{user_id}', response_model=UserPublic)
 def update_user(user_id: int, user: UserSchema):
-
     # validar se existe e retorna o raise
     if user_id < 1 or user_id > len(database):
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='Não encontrado!'
-        )
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Não encontrado!')
 
     user_with_id = userDB(id=user_id, **user.model_dump())
 
@@ -48,14 +45,13 @@ def update_user(user_id: int, user: UserSchema):
 def delete_user(user_id: int):
     # validar se existe e retorna o raise
     if user_id < 1 or user_id > len(database):
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='Não encontrado!'
-        )
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Não encontrado!')
 
     del database[user_id - 1]
 
     return {'message': 'deletado'}
 
-@app.get('/users/{id}',status_code=HTTPStatus.OK, response_model=UserPublic)
+
+@app.get('/users/{id}', status_code=HTTPStatus.OK, response_model=UserPublic)
 def retornar_user(id: int):
-    return database[id-1]
+    return database[id - 1]

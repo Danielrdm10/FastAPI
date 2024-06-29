@@ -10,6 +10,7 @@ python = "3.12.*"
 fastapi = "^0.111.0"
 pandas = "^2.2.2"
 pydantic = "2.7.4"
+sqlalchemy = "^2.0.31"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.4.9"
@@ -26,7 +27,7 @@ lint = 'ruff check . && ruff check . --diff'
 format = 'ruff check . --fix && ruff format .'
 
 [tool.ruff]
-line-length = 79
+line-length = 100
 extend-exclude = ['migrations']
 
 [tool.ruff.lint]
