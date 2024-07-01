@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from fast.models import User
 from fast.schemas import Message, UserPublic, UserSchema, userDB, userList
 from settings import Settings
-
+ab=123
 app = FastAPI()
 
 database = []
