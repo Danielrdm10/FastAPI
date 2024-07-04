@@ -1,8 +1,10 @@
 from http import HTTPStatus
 
+from fast.schemas import UserPublic
+
 
 def test_read_root_deve_retorna_ok(client):
-    # lient = TestClient(app)  # arrange
+    # client = TestClient(app)  # arrange
 
     response = client.get('/')  # act
 
@@ -30,21 +32,14 @@ def test_create_user(client):
     }
 
 
-def test_get_users(client):
+def test_get_users(client, user):
+    user_schema = UserPublic.model_validate(user).model_dump()  # converter o user orm em pydentic
     response = client.get('/users/')
     assert response.status_code == HTTPStatus.OK
-    assert response.json() == {
-        'users': [
-            {
-                'username': 'x',
-                'id': 1,
-                'email': 'qualquercoisa@gmail.com',
-            }
-        ]
-    }
+    assert response.json() == {'users': [user_schema]}
 
 
-def test_put(client):
+def test_put(client, user):
     response = client.put(
         '/users/1',
         json={
@@ -61,7 +56,7 @@ def test_put(client):
     }
 
 
-def test_delete(client):
+def test_delete(client, user):
     response = client.delete('/users/1')
 
-    assert response.json() == {'message': 'deletado'}
+    assert response.json() == {'message': 'usuario deletado'}
