@@ -1,11 +1,13 @@
 from http import HTTPStatus
 
 from fastapi import Depends, FastAPI, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 
 from fast.database import get_session
 from fast.models import User
 from fast.schemas import Message, UserPublic, UserSchema, userList
+from fast.security import get_password_hash
 
 app = FastAPI()
 
@@ -26,7 +28,9 @@ def create_user(user: UserSchema, session=Depends(get_session)):
             raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail='nome já existe')
         elif db_user.email == user.email:
             raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail='email já existe')
-    db_user = User(username=user.username, email=user.email, password=user.password)
+    db_user = User(username=user.username, 
+                   email=user.email, 
+                   password=get_password_hash(user.password))
 
     session.add(db_user)
     session.commit()
@@ -50,7 +54,7 @@ def update_user(user_id: int, user: UserSchema, session=Depends(get_session)):
 
     db_user.password = user.password
     db_user.email = user.email
-    db_user.username = user.username
+    db_user.username = get_password_hash(user.username)
 
     # session.add(db_user) NÃO PRECISA?!
     session.commit()
@@ -71,6 +75,13 @@ def delete_user(user_id: int, session=Depends(get_session)):
 
     return {'message': 'usuario deletado'}
 
+
+@app.post("/token/")
+def login_for_access_tokek(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    session = Depends(get_session)
+):
+    ...
 
 # @app.get('/users/{id}', status_code=HTTPStatus.OK, response_model=UserPublic)
 # def retornar_user(id: int):
