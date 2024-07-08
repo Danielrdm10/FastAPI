@@ -39,19 +39,21 @@ def test_get_users(client, user):
     assert response.json() == {'users': [user_schema]}
 
 
-def test_put(client, user):
+def test_put(client, token, user):
     response = client.put(
-        '/users/1',
+        f'/users/{user.id}',
+        headers={'Authorization': f'Bearer {token}'},
         json={
             'password': '123',
             'username': 'x',
-            'id': 1,
+            'id': user.id,
             'email': 'qualquercoisa@gmail.com',
         },
     )
+
     assert response.json() == {
         'username': 'x',
-        'id': 1,
+        'id': user.id,
         'email': 'qualquercoisa@gmail.com',
     }
 
@@ -63,12 +65,10 @@ def test_delete(client, user):
 
 
 def test_get_token(client, user):
-    response = client.post('/token/', 
-                           data={'username': user.email, 
-                                 'password': user.clean_password})  # formulário não é json, é data
+    response = client.post('/token/', data={'username': user.email, 'password': user.clean_password})  # formulário não é json, é data
 
     token = response.json()
 
     assert response.status_code == HTTPStatus.OK
-    assert token['token_type'] == 'Bearer'
+    assert token['token_type'] == 'bearer'
     assert 'access_token' in token

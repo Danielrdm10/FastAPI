@@ -7,7 +7,7 @@ from sqlalchemy import select
 from fast.database import get_session
 from fast.models import User
 from fast.schemas import Message, Token, UserPublic, UserSchema, userList
-from fast.security import create_access_token, get_password_hash, verify_password
+from fast.security import create_access_token, get_current_user, get_password_hash, verify_password
 
 app = FastAPI()
 
@@ -18,7 +18,10 @@ def read_root():
 
 
 @app.post('/users/', status_code=HTTPStatus.CREATED, response_model=UserPublic)
-def create_user(user: UserSchema, session=Depends(get_session)):
+def create_user(
+    user: UserSchema,
+    session=Depends(get_session),
+):
     db_user = session.scalar(select(User).where((User.username == user.username) | (User.email == user.email)))
 
     if db_user:
@@ -42,40 +45,39 @@ def read_users(limit: int = 5, session=Depends(get_session)):
 
 
 @app.put('/users/{user_id}', response_model=UserPublic)
-def update_user(user_id: int, user: UserSchema, session=Depends(get_session)):
-    db_user = session.scalar(select(User).where(User.id == user_id))
+def update_user(user_id: int, user: UserSchema, session=Depends(get_session), current_user=Depends(get_current_user)):
+    if current_user.id != user_id:
+        raise HTTPException(status_code=400, detail='Não pode!')
 
-    if not db_user:
-        raise HTTPException(status_code=HTTPException.NOT_FOUND, detail='Usuario nao encontrado')
+    # db_user = session.scalar(select(User).where(User.id == user_id))
 
-    db_user.password = get_password_hash(user.password)
-    db_user.email = user.email
-    db_user.username = user.username
+    # if not db_user:
+    #    raise HTTPException(status_code=HTTPException.NOT_FOUND, detail='Usuario nao encontrado')
+
+    current_user.password = get_password_hash(user.password)
+    current_user.email = user.email
+    current_user.username = user.username
 
     # session.add(db_user) NÃO PRECISA?!
     session.commit()
-    session.refresh(db_user)
+    session.refresh(current_user)
 
-    return db_user
+    return current_user
 
 
 @app.delete('/users/{user_id}', response_model=Message)
-def delete_user(user_id: int, session=Depends(get_session)):
-    db_user = session.scalar(select(User).where(User.id == user_id))
+def delete_user(user_id: int, session=Depends(get_session), current_user=Depends(get_current_user)):
+    if current_user.id != user_id:
+        raise HTTPException(status_code=400, detail='Não pode!')
 
-    if not db_user:
-        raise HTTPException(status_code=HTTPException.NOT_FOUND, detail='Usuario nao encontrado')
-
-    session.delete(db_user)
+    session.delete(current_user)
     session.commit()
 
     return {'message': 'usuario deletado'}
 
 
-@app.post('/token/', response_model=Token, status_code=HTTPStatus.OK)
-def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), 
-                           session=Depends(get_session)):
-    
+@app.post('/token/', response_model=Token)
+def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), session=Depends(get_session)):
     user = session.scalar(select(User).where(User.email == form_data.username))
 
     if not user or not verify_password(form_data.password, user.password):
@@ -83,7 +85,7 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
 
     access_token = create_access_token({'sub': user.email})
 
-    return {'access_token': access_token, 'token_type': 'Bearer'}
+    return {'access_token': access_token, 'token_type': 'bearer'}
 
 
 # @app.get('/users/{id}', status_code=HTTPStatus.OK, response_model=UserPublic)

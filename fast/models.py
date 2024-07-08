@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import create_engine, func
+from sqlalchemy import func
 from sqlalchemy.orm import Mapped, mapped_column, registry
 
 table_registry = registry()
@@ -17,5 +17,5 @@ class User:
     created_at: Mapped[datetime] = mapped_column(init=False, server_default=func.now())
 
 
-engine = create_engine('sqlite:///database.db')
-table_registry.metadata.create_all(engine)
+# engine = create_engine('sqlite:///database.db')
+# table_registry.metadata.create_all(engine)
