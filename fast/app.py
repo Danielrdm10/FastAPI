@@ -5,8 +5,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 
 from fast.database import get_session
-from fast.models import User
-from fast.schemas import Message, Token, UserPublic, UserSchema, userList
+from fast.models import Todo, User
+from fast.schemas import Message, TodoPublic, TodoSchema, Token, UserPublic, UserSchema, userList
 from fast.security import create_access_token, get_current_user, get_password_hash, verify_password
 
 app = FastAPI()
@@ -88,7 +88,12 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), ses
     return {'access_token': access_token, 'token_type': 'bearer'}
 
 
-# @app.get('/users/{id}', status_code=HTTPStatus.OK, response_model=UserPublic)
-# def retornar_user(id: int):
-#    return database[id - 1]
-# pragma: no cover  para não cobrir no teste
+@app.post('/todo/', response_model=TodoPublic)
+def create_todo(todo: TodoSchema, session=Depends(get_session), currentuser=Depends(get_current_user)):
+    db_todo = Todo(title=todo.title, description=todo.description, state=todo.state, user_id=currentuser.id)
+
+    session.add(db_todo)
+    session.commit()
+    session.refresh(db_todo)
+
+    return db_todo
